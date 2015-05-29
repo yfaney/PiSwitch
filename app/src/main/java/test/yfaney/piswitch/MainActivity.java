@@ -19,20 +19,25 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 
 public class MainActivity extends AppCompatActivity {
     ImageButton mButton;
     boolean mOnOff;
     EditText mEditUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mButton = (ImageButton)findViewById(R.id.imgBtnOnOff);
         mEditUrl = (EditText)findViewById(R.id.editTextUrl);
-        if(mEditUrl.equals("")){
+        Log.d("EditUrl", mEditUrl.getText().toString());
+        if(mEditUrl.getText().toString().equals("")){
             mEditUrl.setText("192.168.0.6");
         }
         mOnOff = false;
@@ -41,18 +46,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-        new AsyncTask<String, Process, Boolean>() {
-            @Override
-            protected Boolean doInBackground(String... params) {
-                return callHttpGet(params[0]);
-            }
-
-            @Override
-            public void onPostExecute(Boolean result){
-                mOnOff = result;
-                changeButtonImage(mOnOff);
-            }
-        }.execute("http://" + mEditUrl.getText().toString() + "/api/get/4");
+        new GetPinStatusTask().execute();
     }
 
     @Override
@@ -73,61 +67,59 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
     public void onoffClicked(View view){
         if(mOnOff){
-            new AsyncTask<String, Process, Boolean>() {
-                @Override
-                protected Boolean doInBackground(String... params) {
-                    return callHttpGet(params[0]);
-                }
-
-                @Override
-                public void onPostExecute(Boolean success){
-                    if(success){
-                        mOnOff = false;
-                        changeButtonImage(false);
-                    }
-                }
-            }.execute("http://" + mEditUrl.getText().toString() + "/api/4/off");
+            new OnOffCallTask().execute(false);
         }else{
-            new AsyncTask<String, Process, Boolean>() {
-                @Override
-                protected Boolean doInBackground(String... params) {
-                    return callHttpGet(params[0]);
-                }
-
-                @Override
-                public void onPostExecute(Boolean success){
-                    if(success){
-                        mOnOff = true;
-                        changeButtonImage(true);
-                    }
-                }
-            }.execute("http://" + mEditUrl.getText().toString() + "/api/4/on");
+            new OnOffCallTask().execute(true);
         }
     }
 
-    public boolean getPinStatus(){
-        return callHttpGet("http://" + mEditUrl.getText().toString() + "/api/get/4");
-    }
-
-    private boolean callHttpGet(String url){
+    private boolean callHttpGet(String url, String jsonKey){
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet(url);
         HttpResponse response;
         try {
             response = client.execute(request);
-            Log.d("Response of GET request", response.toString());
-            JSONObject result = new JSONObject(response.toString());
-            return result.getBoolean("result");
+            String respString = getStringFromInputStream(response.getEntity().getContent());
+            Log.d("Response of GET request", respString);
+            JSONObject result = new JSONObject(respString);
+            return result.getBoolean(jsonKey);
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    // convert InputStream to String
+    private static String getStringFromInputStream(InputStream is) {
+
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        try {
+
+            br = new BufferedReader(new InputStreamReader(is));
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return sb.toString();
     }
 
     private void changeButtonImage(boolean on){
@@ -135,6 +127,38 @@ public class MainActivity extends AppCompatActivity {
             mButton.setBackgroundResource(R.drawable.poweron);
         }else{
             mButton.setBackgroundResource(R.drawable.poweroff);
+        }
+    }
+
+    class GetPinStatusTask extends AsyncTask<Void, Process, Boolean>{
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            return callHttpGet("http://" + mEditUrl.getText().toString() + "/api/get/4", "output");
+        }
+
+        @Override
+        public void onPostExecute(Boolean result){
+            mOnOff = result;
+            changeButtonImage(mOnOff);
+        }
+    }
+
+    class OnOffCallTask extends AsyncTask<Boolean, Process, Boolean>{
+        @Override
+        protected Boolean doInBackground(Boolean... params) {
+            if(params[0]){
+                return callHttpGet("http://" + mEditUrl.getText().toString() + "/api/4/on", "result");
+            }else{
+                return callHttpGet("http://" + mEditUrl.getText().toString() + "/api/4/off", "result");
+            }
+        }
+
+        @Override
+        public void onPostExecute(Boolean success){
+            if(success){
+                mOnOff = !mOnOff;
+                changeButtonImage(mOnOff);
+            }
         }
     }
 }
