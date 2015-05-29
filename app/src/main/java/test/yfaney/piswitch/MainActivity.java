@@ -1,5 +1,6 @@
 package test.yfaney.piswitch;
 
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -31,13 +32,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mButton = (ImageButton)findViewById(R.id.imgBtnOnOff);
         mEditUrl = (EditText)findViewById(R.id.editTextUrl);
+        if(mEditUrl.equals("")){
+            mEditUrl.setText("192.168.0.6");
+        }
         mOnOff = false;
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        mOnOff = false;
+        new AsyncTask<String, Process, Boolean>() {
+            @Override
+            protected Boolean doInBackground(String... params) {
+                return callHttpGet(params[0]);
+            }
+
+            @Override
+            public void onPostExecute(Boolean result){
+                mOnOff = result;
+                changeButtonImage(mOnOff);
+            }
+        }.execute("http://" + mEditUrl.getText().toString() + "/api/get/4");
     }
 
     @Override
@@ -63,12 +78,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onoffClicked(View view){
+        if(mOnOff){
+            new AsyncTask<String, Process, Boolean>() {
+                @Override
+                protected Boolean doInBackground(String... params) {
+                    return callHttpGet(params[0]);
+                }
 
+                @Override
+                public void onPostExecute(Boolean success){
+                    if(success){
+                        mOnOff = false;
+                        changeButtonImage(false);
+                    }
+                }
+            }.execute("http://" + mEditUrl.getText().toString() + "/api/4/off");
+        }else{
+            new AsyncTask<String, Process, Boolean>() {
+                @Override
+                protected Boolean doInBackground(String... params) {
+                    return callHttpGet(params[0]);
+                }
+
+                @Override
+                public void onPostExecute(Boolean success){
+                    if(success){
+                        mOnOff = true;
+                        changeButtonImage(true);
+                    }
+                }
+            }.execute("http://" + mEditUrl.getText().toString() + "/api/4/on");
+        }
     }
 
     public boolean getPinStatus(){
+        return callHttpGet("http://" + mEditUrl.getText().toString() + "/api/get/4");
+    }
+
+    private boolean callHttpGet(String url){
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://" + mEditUrl.getText().toString() + "/api/get/4");
+        HttpGet request = new HttpGet(url);
         HttpResponse response;
         try {
             response = client.execute(request);
@@ -79,5 +128,13 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private void changeButtonImage(boolean on){
+        if(on){
+            mButton.setBackgroundResource(R.drawable.poweron);
+        }else{
+            mButton.setBackgroundResource(R.drawable.poweroff);
+        }
     }
 }
