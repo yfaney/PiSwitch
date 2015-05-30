@@ -36,10 +36,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mButton = (ImageButton)findViewById(R.id.imgBtnOnOff);
         mEditUrl = (EditText)findViewById(R.id.editTextUrl);
-        Log.d("EditUrl", mEditUrl.getText().toString());
-        if(mEditUrl.getText().toString().equals("")){
-            mEditUrl.setText("192.168.0.6");
-        }
+        mEditUrl.setText("192.168.0.6");
         mOnOff = false;
     }
 
