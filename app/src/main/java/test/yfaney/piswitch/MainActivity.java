@@ -1,5 +1,7 @@
 package test.yfaney.piswitch;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -23,9 +25,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.prefs.Preferences;
 
 
 public class MainActivity extends AppCompatActivity {
+    final static String PREFERENCES_APPLICATION = "APPLICATION_PREFERENCES";
+    final static String PREF_KEY_SERVER_ADDRESS = "PREF_KEY_SERVER_ADDRESS";
+    final static String INIT_SERVER_ADDRESS = "192.168.0.15";
+
+    SharedPreferences pref;
     ImageButton mButton;
     boolean mOnOff;
     EditText mEditUrl;
@@ -36,7 +44,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mButton = (ImageButton)findViewById(R.id.imgBtnOnOff);
         mEditUrl = (EditText)findViewById(R.id.editTextUrl);
-        mEditUrl.setText("192.168.0.6");
+        pref = getSharedPreferences(PREFERENCES_APPLICATION, Context.MODE_PRIVATE);
+        String address = pref.getString(PREF_KEY_SERVER_ADDRESS, "");
+        if ("".equals(address)) {
+            mEditUrl.setText(INIT_SERVER_ADDRESS);
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString(PREF_KEY_SERVER_ADDRESS, INIT_SERVER_ADDRESS);
+            editor.apply();
+        }else{
+            mEditUrl.setText(address);
+        }
         mOnOff = false;
     }
 
@@ -44,6 +61,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
         new GetPinStatusTask().execute();
+    }
+
+    @Override
+    protected void onDestroy(){
+        String address = mEditUrl.getText().toString();
+        if(!"".equals(address)){
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString(PREF_KEY_SERVER_ADDRESS, address);
+            editor.apply();
+        }
+        super.onDestroy();
     }
 
     @Override
