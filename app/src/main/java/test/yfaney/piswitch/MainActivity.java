@@ -1,34 +1,19 @@
 package test.yfaney.piswitch;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageButton;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.prefs.Preferences;
 
 
 public class MainActivity extends AppCompatActivity {
+    final static String TAG = "PiSwitchMain";
     final static String PREFERENCES_APPLICATION = "APPLICATION_PREFERENCES";
     final static String PREF_KEY_SERVER_ADDRESS = "PREF_KEY_SERVER_ADDRESS";
     final static String INIT_SERVER_ADDRESS = "192.168.0.15";
@@ -36,24 +21,27 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences pref;
     ImageButton mButton;
     boolean mOnOff;
-    EditText mEditUrl;
+//    EditText mEditUrl;
+    String mAddress;
+    SwitchController mController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mButton = (ImageButton)findViewById(R.id.imgBtnOnOff);
-        mEditUrl = (EditText)findViewById(R.id.editTextUrl);
+//        mEditUrl = (EditText)findViewById(R.id.editTextUrl);
         pref = getSharedPreferences(PREFERENCES_APPLICATION, Context.MODE_PRIVATE);
-        String address = pref.getString(PREF_KEY_SERVER_ADDRESS, "");
-        if ("".equals(address)) {
-            mEditUrl.setText(INIT_SERVER_ADDRESS);
-            SharedPreferences.Editor editor = pref.edit();
-            editor.putString(PREF_KEY_SERVER_ADDRESS, INIT_SERVER_ADDRESS);
-            editor.apply();
-        }else{
-            mEditUrl.setText(address);
-        }
+        mAddress = pref.getString(PREF_KEY_SERVER_ADDRESS, INIT_SERVER_ADDRESS);
+        mController = SwitchController.getInstance();
+//        if ("".equals(address)) {
+//            mEditUrl.setText(INIT_SERVER_ADDRESS);
+//            SharedPreferences.Editor editor = pref.edit();
+//            editor.putString(PREF_KEY_SERVER_ADDRESS, INIT_SERVER_ADDRESS);
+//            editor.apply();
+//        }else{
+//            mEditUrl.setText(address);
+//        }
         mOnOff = false;
     }
 
@@ -63,16 +51,15 @@ public class MainActivity extends AppCompatActivity {
         new GetPinStatusTask().execute();
     }
 
-    @Override
-    protected void onDestroy(){
-        String address = mEditUrl.getText().toString();
-        if(!"".equals(address)){
-            SharedPreferences.Editor editor = pref.edit();
-            editor.putString(PREF_KEY_SERVER_ADDRESS, address);
-            editor.apply();
-        }
-        super.onDestroy();
-    }
+//    @Override
+//    protected void onPause(){
+//        super.onPause();
+//    }
+//
+//    @Override
+//    protected void onDestroy(){
+//        super.onDestroy();
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -90,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent i = new Intent(this, SettingsActivity.class);
+            startActivity(i);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -103,50 +92,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean callHttpGet(String url, String jsonKey){
-        HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet(url);
-        HttpResponse response;
-        try {
-            response = client.execute(request);
-            String respString = getStringFromInputStream(response.getEntity().getContent());
-            Log.d("Response of GET request", respString);
-            JSONObject result = new JSONObject(respString);
-            return result.getBoolean(jsonKey);
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    // convert InputStream to String
-    private static String getStringFromInputStream(InputStream is) {
-
-        BufferedReader br = null;
-        StringBuilder sb = new StringBuilder();
-
-        String line;
-        try {
-
-            br = new BufferedReader(new InputStreamReader(is));
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return sb.toString();
-    }
-
     private void changeButtonImage(boolean on){
         if(on){
             mButton.setBackgroundResource(R.drawable.poweron);
@@ -158,7 +103,8 @@ public class MainActivity extends AppCompatActivity {
     class GetPinStatusTask extends AsyncTask<Void, Process, Boolean>{
         @Override
         protected Boolean doInBackground(Void... params) {
-            return callHttpGet("http://" + mEditUrl.getText().toString() + "/api/get/4", "output");
+//            String address = mEditUrl.getText().toString();
+            return mController.callHttp("http://" + mAddress + "/api/get/4", "output");
         }
 
         @Override
@@ -171,10 +117,11 @@ public class MainActivity extends AppCompatActivity {
     class OnOffCallTask extends AsyncTask<Boolean, Process, Boolean>{
         @Override
         protected Boolean doInBackground(Boolean... params) {
+//            String address = mEditUrl.getText().toString();
             if(params[0]){
-                return callHttpGet("http://" + mEditUrl.getText().toString() + "/api/4/on", "result");
+                return mController.callHttp("http://" + mAddress + "/api/4/on", "result");
             }else{
-                return callHttpGet("http://" + mEditUrl.getText().toString() + "/api/4/off", "result");
+                return mController.callHttp("http://" + mAddress + "/api/4/off", "result");
             }
         }
 
