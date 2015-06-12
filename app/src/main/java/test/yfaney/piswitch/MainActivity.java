@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mButton = (ImageButton)findViewById(R.id.imgBtnOnOff);
+        mButton.setBackgroundColor(0x00FFFFFF);
 //        mEditUrl = (EditText)findViewById(R.id.editTextUrl);
         pref = getSharedPreferences(PREFERENCES_APPLICATION, Context.MODE_PRIVATE);
         mAddress = pref.getString(PREF_KEY_SERVER_ADDRESS, INIT_SERVER_ADDRESS);
@@ -94,9 +95,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void changeButtonImage(boolean on){
         if(on){
-            mButton.setBackgroundResource(R.drawable.poweron);
+            mButton.setImageResource(R.drawable.poweron);
         }else{
-            mButton.setBackgroundResource(R.drawable.poweroff);
+            mButton.setImageResource(R.drawable.poweroff);
         }
     }
 

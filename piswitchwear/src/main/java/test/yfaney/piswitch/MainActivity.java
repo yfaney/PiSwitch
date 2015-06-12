@@ -54,6 +54,7 @@ public class MainActivity extends Activity implements
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
                 mButton = (ImageButton) stub.findViewById(R.id.imageButton);
+                mButton.setBackgroundColor(0x00FFFFFF);
                 changeButtonImage(mOnOff);
             }
         });
@@ -221,9 +222,9 @@ public class MainActivity extends Activity implements
 
     private void changeButtonImage(boolean on){
         if(on){
-            mButton.setBackgroundResource(R.drawable.poweron);
+            mButton.setImageResource(R.drawable.poweron);
         }else{
-            mButton.setBackgroundResource(R.drawable.poweroff);
+            mButton.setImageResource(R.drawable.poweroff);
         }
     }
 }
