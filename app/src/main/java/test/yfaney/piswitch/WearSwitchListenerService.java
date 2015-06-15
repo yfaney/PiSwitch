@@ -3,6 +3,7 @@ package test.yfaney.piswitch;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.gms.wearable.DataEvent;
@@ -25,7 +26,7 @@ public class WearSwitchListenerService extends WearableListenerService {
     public void onCreate(){
         super.onCreate();
         mController = SwitchController.getInstance();
-        SharedPreferences pref = getSharedPreferences(PREFERENCES_APPLICATION, Context.MODE_PRIVATE);
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         mAddress = pref.getString(PREF_KEY_SERVER_ADDRESS, "");
         Log.d(TAG,"=================Service Started=================");
     }

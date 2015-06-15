@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="PREF_KEY_SERVER_ADDRESS"
+        android:title="@string/pref_title_display_name"
+        android:summary="The switch server address"
+        android:defaultValue="@string/pref_default_display_name"/>
+</PreferenceScreen>

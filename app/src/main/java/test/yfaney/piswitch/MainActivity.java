@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         mButton = (ImageButton)findViewById(R.id.imgBtnOnOff);
         mButton.setBackgroundColor(0x00FFFFFF);
 //        mEditUrl = (EditText)findViewById(R.id.editTextUrl);
-        pref = getSharedPreferences(PREFERENCES_APPLICATION, Context.MODE_PRIVATE);
+        pref = PreferenceManager.getDefaultSharedPreferences(this);
         mAddress = pref.getString(PREF_KEY_SERVER_ADDRESS, INIT_SERVER_ADDRESS);
         mController = SwitchController.getInstance();
 //        if ("".equals(address)) {
