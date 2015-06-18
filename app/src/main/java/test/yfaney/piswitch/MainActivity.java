@@ -15,7 +15,6 @@ import android.widget.ImageButton;
 
 public class MainActivity extends AppCompatActivity {
     final static String TAG = "PiSwitchMain";
-    final static String PREFERENCES_APPLICATION = "APPLICATION_PREFERENCES";
     final static String PREF_KEY_SERVER_ADDRESS = "PREF_KEY_SERVER_ADDRESS";
     final static String INIT_SERVER_ADDRESS = "192.168.0.15";
 
@@ -52,16 +51,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         new GetPinStatusTask().execute();
     }
-
-//    @Override
-//    protected void onPause(){
-//        super.onPause();
-//    }
-//
-//    @Override
-//    protected void onDestroy(){
-//        super.onDestroy();
-//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
